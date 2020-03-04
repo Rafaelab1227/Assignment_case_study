@@ -88,7 +88,15 @@ data_month = levels(data$MONTH)
 
 # Panels ------------------------------------------------------------------
 tab1 <- tabItem(tabName = "tab1",print("Hello1"))
-tab2 <- tabItem(tabName = "tab2",print("Hello2"))
+tab2 <- tabItem(tabName="tab2", 
+                fluidRow(selectInput(
+                inputId = "sel_type",
+                label = "Select type of accident",
+                #multiple = TRUE,
+                choices = c("o1","o2"),
+                selected = c("o1")
+                ))
+)
 tab3 <- tabItem(tabName = "tab3",print("Hello3"))
 tab4 <- tabItem(tabName = "tab4",print("Hello4"))
 
@@ -96,7 +104,7 @@ tab4 <- tabItem(tabName = "tab4",print("Hello4"))
 # Ui ----------------------------------------------------------------------
 ui <- dashboardPage(
     skin = "purple",
-    dashboardHeader(title = 'Madrid accidents 2020'),
+    dashboardHeader(title = 'Madrid accidents 2020', titleWidth = 500),
     dashboardSidebar(sidebarMenu(
                                     menuItem("Description", tabName = "tab1", icon = icon("binoculars")),
                                     menuItem("Type", tabName = "tab2", icon = icon("bus-alt")),
