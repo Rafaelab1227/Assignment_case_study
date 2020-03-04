@@ -1,13 +1,22 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
+# Data loading ------------------------------------------------------------
+download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
+data <- read.csv("accidentsmadrid.csv", sep=";")
+
+
+library(rjson)
+
+pop_proj_data_df <- fromJSON(getURL("https://data.cambridgema.gov/resource/ybny-g9cv.json"))
+
+
+# Packages requiere -------------------------------------------------------
 library(shiny)
+
+
+
+
+# Panels ------------------------------------------------------------------
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -31,6 +40,10 @@ ui <- fluidPage(
         )
     )
 )
+
+
+
+# Server ------------------------------------------------------------------
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
