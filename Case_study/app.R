@@ -86,6 +86,13 @@ data_day = levels(data$DAY)
 data_day = levels(ordered(data$DAY, levels=days))
 data_month = levels(data$MONTH)
 
+
+# Data subset expediente --------------------------------------------------
+df_exp <- unique(select(data, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
+                   ADDRESS, MONTH, DAY, TIME))
+df_count <- select(data, TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())
+
+
 # Panels ------------------------------------------------------------------
 tab1 <- tabItem(tabName = "tab1",print("Hello1"))
 tab2 <- tabItem(tabName="tab2", 
@@ -95,7 +102,21 @@ tab2 <- tabItem(tabName="tab2",
                 #multiple = TRUE,
                 choices = c("o1","o2"),
                 selected = c("o1")
-                ))
+                )),
+                fluidRow(
+                    valueBoxOutput("box21"),
+                    valueBoxOutput("box22"),
+                    valueBoxOutput("box23")
+                ),
+                fluidRow(
+                    tabBox(tabPanel(title = "Historical accidents"),
+                           tabPanel(title = "Accidents per district"),
+                           tabPanel(title = "Victims"),
+                           tabPanel(title = "Weather"),
+                           tabPanel(title = "Injury level")
+                           )
+                )
+                
 )
 tab3 <- tabItem(tabName = "tab3",print("Hello3"))
 tab4 <- tabItem(tabName = "tab4",print("Hello4"))
@@ -123,7 +144,11 @@ dashboardBody(tabItems(tab1,
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-    print("Hello")
+    
+    data2 <- data
+
+# Boxes 2 -----------------------------------------------------------------
+
 }
 
 # Run the application 
