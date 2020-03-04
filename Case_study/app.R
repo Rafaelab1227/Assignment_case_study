@@ -9,6 +9,7 @@ require(shiny)
 require(dplyr)
 require(stringr)
 require(magrittr)
+require(lubridate)
 # Prepare data ------------------------------------------------------------
 # Geolocation of accidents ------------------------------------------------
 # Changes in dataset ------------------------------------------------------
@@ -56,6 +57,8 @@ data_address <- unique(data$ADDRESS)
 # Factor variables --------------------------------------------------------
 data <- data.frame(lapply(data, as.character), stringsAsFactors=FALSE)
 data[is.na(data)] <- "UNKNOWN"
+data[data=="Se desconoce"]<-"UNKNOWN"
+
 data %<>% mutate_at(c("NEXPEDIENTE", "DISTRITO","TIPO.ACCIDENTE","ESTADO.METEREOLOGICO",
                       "LESIVIDAD","SEXO","RANGO.DE.EDAD","TIPO.PERSONA","TIPO.VEHICULO"),
                     as.factor)
@@ -66,9 +69,23 @@ data_weather = levels(data$ESTADO.METEREOLOGICO) %>% str_sort()
 data_level = levels(data$LESIVIDAD) %>% str_sort()
 data_car = levels(data$TIPO.VEHICULO) %>% str_sort()
 
-
+days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
+          "Friday", "Saturday")
 # Date variables ----------------------------------------------------------
+data %<>% mutate( FECHA = as.POSIXct(FECHA, format="%d/%m/%Y"),
+                  MONTH = month.abb[month(as.POSIXlt(FECHA, format="%d/%m/%Y"))],
+                  #DAY = as.POSIXlt(FECHA)$wday)
+                  #DAY = weekdays(as.Date(DATE)))
+                  DAY = days[as.POSIXlt(FECHA)$wday + 1],
+                  #DAY = format(FECHA, format = "%A"),
+                  TIME = format(as.POSIXct(HORA, format = "%H:%M"),  "%H"))
 
+data %<>% mutate_at(c("DAY", "MONTH","TIME"),
+                    as.factor)
+data_hour = levels(data$TIME)
+data_day = levels(data$DAY)
+data_day = levels(ordered(data$DAY, levels=days))
+data_month = levels(data$MONTH)
 
 # Panels ------------------------------------------------------------------
 
