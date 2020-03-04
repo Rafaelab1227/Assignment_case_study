@@ -4,13 +4,24 @@ download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafic
 data <- read.csv("accidentsmadrid.csv", sep=";")
 
 
-library(rjson)
-
-pop_proj_data_df <- fromJSON(getURL("https://data.cambridgema.gov/resource/ybny-g9cv.json"))
-
-
 # Packages requiere -------------------------------------------------------
-library(shiny)
+require(shiny)
+require(dplyr)
+require(stringr)
+
+# Prepare data ------------------------------------------------------------
+# Geolocation of accidents ------------------------------------------------
+# Changes in dataset ------------------------------------------------------
+data = data %>% 
+    rename(
+        NUMERO =NÚMERO,
+        ESTADO.METEREOLOGICO = ESTADO.METEREOLÓGICO 
+    )
+
+data = data %>% mutate(ADRESS=paste(str_trim(CALLE), str_trim(NUMERO), "MADRID", sep=", ") %>% 
+                           str_replace("NA, ", "") %>% 
+                           str_replace(", -, ", ", 0,"))
+
 
 
 
