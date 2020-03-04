@@ -6,8 +6,7 @@ data1 <- read.csv("accidentsmadrid.csv", sep=";")
 
 # Packages requiere -------------------------------------------------------
 require(shiny)
-require(dplyr)
-require(stringr)
+require(tidyverse)
 require(magrittr)
 require(lubridate)
 # Prepare data ------------------------------------------------------------
@@ -88,46 +87,35 @@ data_day = levels(ordered(data$DAY, levels=days))
 data_month = levels(data$MONTH)
 
 # Panels ------------------------------------------------------------------
+tab1 <- tabItem(tabName = "tab1",print("Hello1"))
+tab2 <- tabItem(tabName = "tab2",print("Hello2"))
+tab3 <- tabItem(tabName = "tab3",print("Hello3"))
+tab4 <- tabItem(tabName = "tab4",print("Hello4"))
 
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
-    )
+# Ui ----------------------------------------------------------------------
+ui <- dashboardPage(
+    skin = "purple",
+    dashboardHeader(title = 'Madrid accidents 2020'),
+    dashboardSidebar(sidebarMenu(
+                                    menuItem("Description", tabName = "tab1", icon = icon("binoculars")),
+                                    menuItem("Type", tabName = "tab2", icon = icon("bus-alt")),
+                                    menuItem("Date", tabName = "tab3", icon = icon("calendar-alt")),
+                                    menuItem("Location", tabName = "tab4", icon = icon("map-marked-alt"))
 )
-
-
+),
+dashboardBody(tabItems(tab1,
+              tab2,
+              tab3,
+              tab4)
+)
+)
 
 # Server ------------------------------------------------------------------
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-    })
+    print("Hello")
 }
 
 # Run the application 
