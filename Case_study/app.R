@@ -96,25 +96,31 @@ df_count <- select(data, TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>% g
 # Panels ------------------------------------------------------------------
 tab1 <- tabItem(tabName = "tab1",print("Hello1"))
 tab2 <- tabItem(tabName="tab2", 
-                fluidRow(selectInput(
-                inputId = "sel_type",
-                label = "Select type of accident",
-                #multiple = TRUE,
-                choices = c("o1","o2"),
-                selected = c("o1")
-                )),
-                fluidRow(
-                    valueBoxOutput("box21"),
-                    valueBoxOutput("box22"),
-                    valueBoxOutput("box23")
-                ),
-                fluidRow(
-                    tabBox(tabPanel(title = "Historical accidents"),
-                           tabPanel(title = "Accidents per district"),
-                           tabPanel(title = "Victims"),
-                           tabPanel(title = "Weather"),
-                           tabPanel(title = "Injury level")
-                           )
+                sidebarLayout(
+                    sidebarPanel(
+                        selectInput(
+                            inputId = "sel_type",
+                            label = "Select type of accident",
+                            multiple = TRUE,
+                            choices = c("o1","o2"),
+                            selected = c("o1")
+                        )
+                    ),
+                    mainPanel(
+                        fluidRow(
+                            valueBoxOutput("box21"),
+                        ),
+                        fluidRow(
+                            tabBox(#tabPanel(title = "Historical accidents"),
+                                tabPanel(title = "Accidents per district"),
+                                tabPanel(title = "Victims"),
+                                tabPanel(title = "Weather"),
+                                tabPanel(title = "Injury level"),
+                                width = 15
+                            )
+                        )
+                        
+                    )
                 )
                 
 )
@@ -146,9 +152,20 @@ dashboardBody(tabItems(tab1,
 server <- function(input, output) {
     
     data2 <- data
-
+    df_count2 <-data2%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())
+    df_exp <- unique(select(data2, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
+                            ADDRESS, MONTH, DAY, TIME))
+    
 # Boxes 2 -----------------------------------------------------------------
+    output$box21 <- renderValueBox({
+        valueBox(
+            value = prettyNum(round(dim(df_count2)[1])),
+            color = "blue",
+            icon = icon("car-crash"),
+            subtitle = "Total accidents"
 
+        )}) 
+    
 }
 
 # Run the application 
