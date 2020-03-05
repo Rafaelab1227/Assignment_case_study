@@ -9,6 +9,7 @@ require(shiny)
 require(tidyverse)
 require(magrittr)
 require(lubridate)
+require(shinydashboard)
 # Prepare data ------------------------------------------------------------
 # Geolocation of accidents ------------------------------------------------
 # Changes in dataset ------------------------------------------------------
@@ -26,6 +27,15 @@ data <- data %>% mutate(ADDRESS=paste(str_trim(CALLE), str_trim(NUMERO), "MADRID
                            str_replace(", -, ", ", 0,")
 )
 
+#Change levels of injury based on dataset dictionary
+data$INJURY <- "Mild"
+data[is.na(data$LESIVIDAD),match("LESIVIDAD",names(data))]<- "Unknown"
+data[is.na(data$LESIVIDAD), match("INJURY",names(data))] <- "Unknown"
+data[data$LESIVIDAD=="3", match("INJURY",names(data))] <- "Severe"
+data[data$LESIVIDAD=="14"|data$LESIVIDAD=="", match("INJURY",names(data))] <- "Without assistance"
+data[data$LESIVIDAD=="77", match("INJURY",names(data))] <- "Unknown"
+
+#Changes to NA
 data <- data %>% mutate_all(na_if,"")
 
 #Eliminate all the names ("CALL.", "AV.", etc) that are not supported by geolocation
@@ -55,11 +65,12 @@ data_address <- unique(data$ADDRESS)
 
 # Factor variables --------------------------------------------------------
 data <- data.frame(lapply(data, as.character), stringsAsFactors=FALSE)
-data[is.na(data)] <- "UNKNOWN"
-data[data=="Se desconoce"]<-"UNKNOWN"
+data[is.na(data)] <- "Unknown"
+data[data=="Se desconoce"]<-"Unknown"
 
 data %<>% mutate_at(c("NEXPEDIENTE", "DISTRITO","TIPO.ACCIDENTE","ESTADO.METEREOLOGICO",
-                      "LESIVIDAD","SEXO","RANGO.DE.EDAD","TIPO.PERSONA","TIPO.VEHICULO"),
+                      "LESIVIDAD","SEXO","RANGO.DE.EDAD","TIPO.PERSONA","TIPO.VEHICULO",
+                      "INJURY"),
                     as.factor)
 
 data_district = levels(data$DISTRITO) %>% str_sort()
@@ -67,6 +78,7 @@ data_acc = levels(data$TIPO.ACCIDENTE) %>% str_sort()
 data_weather = levels(data$ESTADO.METEREOLOGICO) %>% str_sort()
 data_level = levels(data$LESIVIDAD) %>% str_sort()
 data_car = levels(data$TIPO.VEHICULO) %>% str_sort()
+data_inj = levels(data$INJURY) %>% str_sort()
 
 days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
           "Friday", "Saturday")
@@ -94,23 +106,34 @@ df_count <- select(data, TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>% g
 
 
 # Panels ------------------------------------------------------------------
-tab1 <- tabItem(tabName = "tab1",print("Hello1"))
-tab2 <- tabItem(tabName="tab2", 
+tab1 <- tabItem(tabName = "tab1",
+                tags$head(tags$style(HTML(".small-box {height: 200px}"))),
+                fluidRow(
+                    valueBoxOutput("box1", width=15)
+                    )
+)
+
+tab2 <- tabItem(tabName="tab2",
                 sidebarLayout(
                     sidebarPanel(
                         selectInput(
                             inputId = "sel_type",
                             label = "Select type of accident",
                             multiple = TRUE,
-                            choices = c("o1","o2"),
-                            selected = c("o1")
+                            choices = data_acc,
+                            selected = c("Colisión múltiple")
+                        ),
+                        selectInput(
+                            inputId = "sel_injury",
+                            label = "Select level of injury",
+                            multiple = TRUE,
+                            choices = data_inj,
+                            selected = c("Mild")
                         )
+                        
                     ),
                     mainPanel(
-                        fluidRow(
-                            valueBoxOutput("box21"),
-                        ),
-                        fluidRow(
+                            fluidRow(
                             tabBox(#tabPanel(title = "Historical accidents"),
                                 tabPanel(title = "Accidents per district"),
                                 tabPanel(title = "Victims"),
@@ -150,21 +173,26 @@ dashboardBody(tabItems(tab1,
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+# Tab 1 -------------------------------------------------------------------
     
-    data2 <- data
-    df_count2 <-data2%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())
-    df_exp <- unique(select(data2, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
-                            ADDRESS, MONTH, DAY, TIME))
-    
-# Boxes 2 -----------------------------------------------------------------
-    output$box21 <- renderValueBox({
+    # Boxes 1 -----------------------------------------------------------------
+    output$box1 <- renderValueBox({
         valueBox(
-            value = prettyNum(round(dim(df_count2)[1])),
+            value = as.numeric(nrow(data)),
             color = "blue",
             icon = icon("car-crash"),
             subtitle = "Total accidents"
-
+            
         )}) 
+    
+# Tab 2 -------------------------------------------------------------------
+
+   
+    data2 <- reactive({data %>% filter(TIPO.ACCIDENTE %in% input$sel_type, INJURY %in% input$sel_injury)})
+
+    df_count2 <-reactive({data2%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())})
+    df_exp <- reactive({unique(select(data2, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
+                            ADDRESS, MONTH, DAY, TIME))})
     
 }
 
