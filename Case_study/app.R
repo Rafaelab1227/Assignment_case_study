@@ -1,9 +1,9 @@
 
 # Data loading ------------------------------------------------------------
-download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
+#download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
 data1 <- read.csv("accidentsmadrid.csv", sep=";")
 
-download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid1.csv")
+#download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid1.csv")
 data2 <- read.csv("accidentsmadrid1.csv", sep=";")
 
 
@@ -202,7 +202,7 @@ tab2 <- tabItem(tabName="tab2",
                             tabBox(#tabPanel(title = "Historical accidents"),
                                 tabPanel(title = "Accidents per district"),
                                 tabPanel(title = "Victims"),
-                                tabPanel(title = "Weather"),
+                                tabPanel(title = "Weather", plotlyOutput("fig23"),plotlyOutput("fig24")),
                                 tabPanel(title = "Injury level"),
                                 width = 15
                             )
@@ -252,13 +252,40 @@ server <- function(input, output) {
     
 # Tab 2 -------------------------------------------------------------------
 
-   
     data2 <- reactive({data %>% filter(TIPO.ACCIDENTE %in% input$sel_type, INJURY %in% input$sel_injury)})
+    
 
     df_count2 <-reactive({data2%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())})
     df_exp <- reactive({unique(select(data2, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
                             ADDRESS, MONTH, DAY, TIME))})
 
+    
+# Plots tab 2 -------------------------------------------------------------
+
+# Weather -----------------------------------------------------------------
+    output$fig23 <- renderPlotly({
+        
+        df_weather2 <-data2()%>% group_by(ESTADO.METEREOLOGICO)%>%summarise(Victims=n(),
+                                                                        Accidents = n_distinct(NEXPEDIENTE))
+
+        fig23 <- plot_ly(df_weather2, labels = ~ESTADO.METEREOLOGICO, values = ~Accidents, type = 'pie')
+        fig23 <- fig23 %>% layout(title = 'Accidents depending on climate',
+                              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+    
+    fig23
+    })
+    
+    output$fig24 <- renderPlotly({
+        df_weather2 <-data2()%>% group_by(ESTADO.METEREOLOGICO)%>%summarise(Victims=n(),
+                                                                            Accidents = n_distinct(NEXPEDIENTE))
+        fig24 <- plot_ly(df_weather2, labels = ~ESTADO.METEREOLOGICO, values = ~Victims, type = 'pie')
+        fig24 <- fig24 %>% layout(title = 'Victims depending on climate',
+                                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+        
+        fig24
+    })
 # Tab 3 -------------------------------------------------------------------
     output$fig3 <- renderPlotly({
     fig3 <- plot_ly(df_date_historic, x = ~FECHA)
