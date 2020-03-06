@@ -3,6 +3,9 @@
 download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
 data1 <- read.csv("accidentsmadrid.csv", sep=";")
 
+download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid1.csv")
+data2 <- read.csv("accidentsmadrid1.csv", sep=";")
+
 
 # Packages requiere -------------------------------------------------------
 require(shiny)
@@ -10,6 +13,7 @@ require(tidyverse)
 require(magrittr)
 require(lubridate)
 require(shinydashboard)
+require(plotly)
 # Prepare data ------------------------------------------------------------
 # Geolocation of accidents ------------------------------------------------
 # Changes in dataset ------------------------------------------------------
@@ -31,7 +35,7 @@ data <- data %>% mutate(ADDRESS=paste(str_trim(CALLE), str_trim(NUMERO), "MADRID
 data$INJURY <- "Mild"
 data[is.na(data$LESIVIDAD),match("LESIVIDAD",names(data))]<- "Unknown"
 data[is.na(data$LESIVIDAD), match("INJURY",names(data))] <- "Unknown"
-data[data$LESIVIDAD=="3", match("INJURY",names(data))] <- "Severe"
+data[data$LESIVIDAD=="3", match("INJURY",names(data))] <- "Fatal"
 data[data$LESIVIDAD=="14"|data$LESIVIDAD=="", match("INJURY",names(data))] <- "Without assistance"
 data[data$LESIVIDAD=="77", match("INJURY",names(data))] <- "Unknown"
 
@@ -105,6 +109,68 @@ df_exp <- unique(select(data, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTA
 df_count <- select(data, TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())
 
 
+# Data date historic--------------------------------------------------------
+
+# Transformations historic ------------------------------------------------
+datah <- data2 %>% 
+    rename(
+        NUMERO =NÚMERO,
+        ESTADO.METEREOLOGICO = ESTADO.METEREOLÓGICO,
+        TIPO.VEHICULO = TIPO.VEHÍCULO,
+        LESIVIDAD = LESIVIDAD.,
+        NEXPEDIENTE = Nº..EXPEDIENTE
+    )
+
+datah$INJURY <- "Mild"
+datah[is.na(datah$LESIVIDAD),match("LESIVIDAD",names(datah))]<- "Unknown"
+datah[is.na(datah$LESIVIDAD), match("INJURY",names(datah))] <- "Unknown"
+datah[datah$LESIVIDAD=="3", match("INJURY",names(datah))] <- "Fatal"
+datah[datah$LESIVIDAD=="14"|data$LESIVIDAD=="", match("INJURY",names(datah))] <- "Without assistance"
+datah[datah$LESIVIDAD=="77", match("INJURY",names(datah))] <- "Unknown"
+
+datah %<>% mutate( FECHA = as.POSIXct(FECHA, format="%d/%m/%Y"))
+                  
+data_dateh <- datah %>% group_by(FECHA)%>% summarise(Victims = n(),
+                                                   Accidents = n_distinct(NEXPEDIENTE))
+
+df_dateh <- data.frame(seq(as.Date(min(datah$FECHA)),as.Date(max(datah$FECHA)),by = 1)+1)
+names(df_dateh)[1]<-"FECHA"
+df_dateh %<>% mutate(DAY = days[as.POSIXlt(FECHA)$wday + 1],
+                    FECHA = as.POSIXct(as.character(FECHA)),
+                    MONTH = month.abb[month(as.POSIXlt(FECHA, format="%d/%m/%Y"))],
+)
+
+df_dateh <- left_join(df_dateh, data_dateh)
+
+weekdays <- df_dateh[1:7,2]
+
+data_deathsh <- datah[datah$INJURY=="Fatal",] %>% group_by(FECHA) %>% summarise(FVictims = n())
+
+df_dateh <- left_join(df_dateh, data_deathsh)
+
+# Tranformations for current set ------------------------------------------
+
+df_date <- data.frame(seq(as.Date(min(data$FECHA)),as.Date(max(data$FECHA)),by = 1)+1)
+names(df_date)[1]<-"FECHA"
+df_date %<>% mutate(DAY = days[as.POSIXlt(FECHA)$wday + 1],
+                    FECHA = as.POSIXct(as.character(FECHA)),
+                    MONTH = month.abb[month(as.POSIXlt(FECHA, format="%d/%m/%Y"))],
+)
+data_date <- data %>% group_by(FECHA)%>% summarise(Victims = n(),
+                                                   Accidents = n_distinct(NEXPEDIENTE))
+
+data_date %<>% mutate(FECHA = as.POSIXct(FECHA, format="%d/%m/%Y"))
+
+df_date <- left_join(df_date, data_date)
+
+data_deaths <- data[data$INJURY=="Fatal",] %>% group_by(FECHA) %>% summarise(FVictims = n())
+
+df_date <- left_join(df_date, data_deaths)
+
+
+# Join dataset historic ---------------------------------------------------
+df_date_historic <- rbind(df_dateh, df_date)
+
 # Panels ------------------------------------------------------------------
 tab1 <- tabItem(tabName = "tab1",
                 tags$head(tags$style(HTML(".small-box {height: 200px}"))),
@@ -119,14 +185,13 @@ tab2 <- tabItem(tabName="tab2",
                         selectInput(
                             inputId = "sel_type",
                             label = "Select type of accident",
-                            multiple = TRUE,
                             choices = data_acc,
+                            multiple = TRUE,
                             selected = c("Colisión múltiple")
                         ),
-                        selectInput(
+                        checkboxGroupInput(
                             inputId = "sel_injury",
                             label = "Select level of injury",
-                            multiple = TRUE,
                             choices = data_inj,
                             selected = c("Mild")
                         )
@@ -193,7 +258,45 @@ server <- function(input, output) {
     df_count2 <-reactive({data2%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())})
     df_exp <- reactive({unique(select(data2, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
                             ADDRESS, MONTH, DAY, TIME))})
+
+# Tab 3 -------------------------------------------------------------------
     
+    fig3 <- plot_ly(df_date_historic, x = ~FECHA)
+    fig3 <- fig3 %>% add_bars(y = ~Accidents, name = "Accidents", marker = list(color = 'green'))
+    fig3 <- fig3 %>% add_bars(y = ~Victims, name = "Victims", marker = list(color = 'rgb(26, 118, 255)'))
+    fig3 <- fig3 %>% add_bars(y = ~FVictims, name = "Fatal victims", marker = list(color = 'rgb(300, 0, 0)'))
+    
+    fig3 <- fig3 %>% layout(
+        xaxis = list(
+            rangeselector = list(
+                buttons = list(
+                    list(
+                        count = 1,
+                        label = "Last month",
+                        step = "month",
+                        stepmode = "backward"),
+                    list(
+                        count = 6,
+                        label = "6 months",
+                        step = "month",
+                        stepmode = "backward"),
+                    list(
+                        count = 1,
+                        label = "1 year",
+                        step = "year",
+                        stepmode = "backward"),
+                    list(
+                        count = 1,
+                        label = "YTD",
+                        step = "1 year to date",
+                        stepmode = "todate"),
+                    list(step = "all"))),
+            
+            rangeslider = list(type = "date")),
+        
+        yaxis = list(title = "Frequency"))
+    
+    fig3    
 }
 
 # Run the application 
