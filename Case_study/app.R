@@ -212,7 +212,7 @@ tab2 <- tabItem(tabName="tab2",
                 )
                 
 )
-tab3 <- tabItem(tabName = "tab3",print("Hello3"))
+tab3 <- tabItem(tabName = "tab3",plotlyOutput("fig3"))
 tab4 <- tabItem(tabName = "tab4",print("Hello4"))
 
 
@@ -260,7 +260,7 @@ server <- function(input, output) {
                             ADDRESS, MONTH, DAY, TIME))})
 
 # Tab 3 -------------------------------------------------------------------
-    
+    output$fig3 <- renderPlotly({
     fig3 <- plot_ly(df_date_historic, x = ~FECHA)
     fig3 <- fig3 %>% add_bars(y = ~Accidents, name = "Accidents", marker = list(color = 'green'))
     fig3 <- fig3 %>% add_bars(y = ~Victims, name = "Victims", marker = list(color = 'rgb(26, 118, 255)'))
@@ -295,8 +295,8 @@ server <- function(input, output) {
             rangeslider = list(type = "date")),
         
         yaxis = list(title = "Frequency"))
-    
-    fig3    
+    fig3
+    })
 }
 
 # Run the application 
