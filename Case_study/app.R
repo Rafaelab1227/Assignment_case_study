@@ -16,6 +16,7 @@ require(shinydashboard)
 require(plotly)
 require(tidyr)
 require(shinyjs)
+require(leaflet)
 
 # Prepare data ------------------------------------------------------------
 # Geolocation of accidents ------------------------------------------------
@@ -47,28 +48,6 @@ data <- data %>% mutate_all(na_if,"")
 
 #Eliminate all the names ("CALL.", "AV.", etc) that are not supported by geolocation
 data <- data %>% mutate(ADDRESS=sub('.*\\/', '', ADDRESS),ADDRESS= sub('.*\\. ', '',ADDRESS))
-
-data_address <- unique(data$ADDRESS)
-
-#geo <- function(location){
-#    d <- jsonlite::fromJSON( 
-#        gsub('\\@addr\\@', gsub('\\s+', '\\%20', location), 
-#             'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
-#
-#        if(length(d) == 0){
-#            return(data.frame(lon = NA,
-#                               lat = NA))
-#             } else {
-#             return(data.frame(lon = as.numeric(d$lon),
-#                                 lat = as.numeric(d$lat)))
-#         }
-# }
-# 
-# locations <- suppressWarnings(lapply(data_address, function(lol) {
-#     result = geo(as.character(lol))
-#     return(result)
-#     }) %>%bind_rows() %>% data.frame())
-
 
 # Factor variables --------------------------------------------------------
 data <- data.frame(lapply(data, as.character), stringsAsFactors=FALSE)
@@ -180,6 +159,38 @@ df_date <- left_join(df_date, data_deaths)
 # Join dataset historic ---------------------------------------------------
 df_date_historic <- rbind(df_dateh, df_date)
 
+
+
+# Geolocation for fatal victims -------------------------------------------
+data_deaths_ad <- ungroup(data[data$INJURY=="Fatal",]) 
+data_address <- unique(as.character(data_deaths_ad$ADDRESS))
+
+geo <- function(location){
+   d <- jsonlite::fromJSON(
+       gsub('\\@addr\\@', gsub('\\s+', '\\%20', location),
+            'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
+
+       if(length(d) == 0){
+           return(data.frame(lon = NA,
+                              lat = NA))
+            } else {
+            return(data.frame(lon = as.numeric(d$lon),
+                                lat = as.numeric(d$lat)))
+        }
+}
+
+locations <- suppressWarnings(lapply(data_address, function(lol) {
+    result = geo(as.character(lol))
+    return(result)
+    }) %>%bind_rows() %>% data.frame())
+
+locations <-cbind(locations,data_address)
+names(locations)[3] <- "ADDRESS"
+data_deaths_ad <- left_join(data_deaths_ad, locations)
+
+nofound <- nrow(data_deaths_ad[is.na(data_deaths_ad$lon),])
+info_nofound <- data_deaths_ad[is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
+names(info_nofound) <- c("Street", "Number", "District", "Age", "Type of accident")
 # Panels ------------------------------------------------------------------
 tab1 <- tabItem(tabName = "tab1",
                 tags$head(tags$style(HTML(".small-box {height: 200px}"))),
