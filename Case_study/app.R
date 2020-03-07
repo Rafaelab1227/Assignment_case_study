@@ -197,6 +197,7 @@ df_date_historic <- rbind(df_dateh, df_date)
  info_found <- data_deaths_ad[!is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
  names(info_found) <- c("Street", "Number", "District", "Age", "Type of accident")
  
+ df_deaths_ad <- data_deaths_ad[!is.na(data_deaths_ad$lon),]
 
 # Panels ------------------------------------------------------------------
 tab1 <- tabItem(tabName = "tab1",
@@ -254,7 +255,16 @@ tab2 <- tabItem(tabName="tab2",
                 )
                 
 )
-tab3 <- tabItem(tabName = "tab3",plotlyOutput("fig3"))
+tab3 <- tabItem(tabName = "tab3", 
+                fluidRow(
+                valueBoxOutput("box4", width=5),
+                valueBoxOutput("box5", width=5), 
+                ),
+                fluidRow(
+                plotlyOutput("fig3"),
+                plotlyOutput("fig31")
+                )
+               )
 tab4 <- tabItem(tabName = "tab4",leafletOutput('map', width = '100%', height = '300px'),
                 useShinyjs(),
                 actionButton("btn", "Info of victims geolocation not found"),
@@ -421,12 +431,33 @@ server <- function(input, output, session) {
         fig24
     })
 # Tab 3 -------------------------------------------------------------------
+    # Box 4 -------------------------------------------------------------------
+    output$box4 <- renderValueBox({
+        valueBox(
+            value = as.numeric(sum(df_date_historic$Accidents)),
+            color = "purple",
+            icon = icon("car-crash"),
+            subtitle = "Total accidents"
+            
+        )}) 
+    
+    output$box5 <- renderValueBox({
+        valueBox(
+            value = as.numeric(sum(df_date_historic$Victims)),
+            color = "purple",
+            icon = icon("ambulance"),
+            subtitle = "Total Victims"
+            
+        )}) 
+
+    # Plots -------------------------------------------------------------------
+
     output$fig3 <- renderPlotly({
     fig3 <- plot_ly(df_date_historic, x = ~FECHA)
     fig3 <- fig3 %>% add_bars(y = ~Accidents, name = "Accidents", marker = list(color = 'green'))
     fig3 <- fig3 %>% add_bars(y = ~Victims, name = "Victims", marker = list(color = 'rgb(26, 118, 255)'))
     fig3 <- fig3 %>% add_bars(y = ~FVictims, name = "Fatal victims", marker = list(color = 'rgb(300, 0, 0)'))
-    
+
     fig3 <- fig3 %>% layout(
         xaxis = list(
             rangeselector = list(
@@ -459,6 +490,18 @@ server <- function(input, output, session) {
     fig3
     })
 
+# Pie chart ---------------------------------------------------------------
+
+    output$fig31 <- renderPlotly({
+        df_weather2 <-df_date_historic%>% group_by(DAY)%>%summarise(Accidents=sum(Accidents, na.rm=TRUE))
+        fig31 <- plot_ly(df_weather2, labels = ~DAY, values = ~Accidents, type = 'pie')
+        fig31 <- fig31 %>% layout(
+                                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+        
+        fig31
+    })
+    
 # Tab 4 -------------------------------------------------------------------
    # output$map <- renderLeaflet({
    #  df_deaths_ad %>%
