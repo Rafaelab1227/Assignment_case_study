@@ -30,7 +30,7 @@ data <- data1 %>%
         NEXPEDIENTE = Nº..EXPEDIENTE
     )
 
-data <- data %>% mutate(ADDRESS=paste(str_trim(CALLE), str_trim(NUMERO), "MADRID", sep=", ") %>% 
+data <- data %>% mutate(ADDRESS=paste(str_trim(CALLE), str_trim(NUMERO), "MADRID, SPAIN", sep=", ") %>% 
                            str_replace(" NA, ", "") %>% 
                            str_replace(", -, ", ", 0,")
 )
@@ -162,35 +162,42 @@ df_date_historic <- rbind(df_dateh, df_date)
 
 
 # Geolocation for fatal victims -------------------------------------------
-data_deaths_ad <- ungroup(data[data$INJURY=="Fatal",]) 
-data_address <- unique(as.character(data_deaths_ad$ADDRESS))
+# data_deaths_ad <- ungroup(data[data$INJURY=="Fatal",]) 
+# data_address <- unique(as.character(data_deaths_ad$ADDRESS))
+# 
+# geo <- function(location){
+#    d <- jsonlite::fromJSON(
+#        gsub('\\@addr\\@', gsub('\\s+', '\\%20', location),
+#             'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
+# 
+#        if(length(d) == 0){
+#            return(data.frame(lon = NA,
+#                               lat = NA))
+#             } else {
+#             return(data.frame(lon = as.numeric(d$lon),
+#                                 lat = as.numeric(d$lat)))
+#         }
+# }
+# 
+# locations <- suppressWarnings(lapply(data_address, function(lol) {
+#     result = geo(as.character(lol))
+#     return(result)
+#     }) %>%bind_rows() %>% data.frame())
+# 
+# locations <-cbind(locations,data_address)
+# names(locations)[3] <- "ADDRESS"
+# data_deaths_ad <- left_join(data_deaths_ad, locations)
+# 
+# nofound <- nrow(data_deaths_ad[is.na(data_deaths_ad$lon),])
+# info_nofound <- data_deaths_ad[is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
+# names(info_nofound) <- c("Street", "Number", "District", "Age", "Type of accident")
+# 
+# df_deaths_ad <- data_deaths_ad[!is.na(data_deaths_ad$lon),]
 
-geo <- function(location){
-   d <- jsonlite::fromJSON(
-       gsub('\\@addr\\@', gsub('\\s+', '\\%20', location),
-            'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
+ info_found <- data_deaths_ad[!is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
+ names(info_found) <- c("Street", "Number", "District", "Age", "Type of accident")
+ 
 
-       if(length(d) == 0){
-           return(data.frame(lon = NA,
-                              lat = NA))
-            } else {
-            return(data.frame(lon = as.numeric(d$lon),
-                                lat = as.numeric(d$lat)))
-        }
-}
-
-locations <- suppressWarnings(lapply(data_address, function(lol) {
-    result = geo(as.character(lol))
-    return(result)
-    }) %>%bind_rows() %>% data.frame())
-
-locations <-cbind(locations,data_address)
-names(locations)[3] <- "ADDRESS"
-data_deaths_ad <- left_join(data_deaths_ad, locations)
-
-nofound <- nrow(data_deaths_ad[is.na(data_deaths_ad$lon),])
-info_nofound <- data_deaths_ad[is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
-names(info_nofound) <- c("Street", "Number", "District", "Age", "Type of accident")
 # Panels ------------------------------------------------------------------
 tab1 <- tabItem(tabName = "tab1",
                 tags$head(tags$style(HTML(".small-box {height: 200px}"))),
@@ -248,7 +255,13 @@ tab2 <- tabItem(tabName="tab2",
                 
 )
 tab3 <- tabItem(tabName = "tab3",plotlyOutput("fig3"))
-tab4 <- tabItem(tabName = "tab4",print("Hello4"))
+tab4 <- tabItem(tabName = "tab4",leafletOutput('map', width = '100%', height = '300px'),
+                useShinyjs(),
+                actionButton("btn", "Info of victims geolocation not found"),
+                tableOutput("element"),
+                actionButton("btn2", "Info victims display"),
+                tableOutput("element2")
+                )
 
 
 # Ui ----------------------------------------------------------------------
@@ -445,6 +458,18 @@ server <- function(input, output, session) {
         yaxis = list(title = "Frequency"))
     fig3
     })
+
+# Tab 4 -------------------------------------------------------------------
+   # output$map <- renderLeaflet({
+   #  df_deaths_ad %>%
+   #  leaflet() %>%
+   #      addTiles() %>%  # Add default OpenStreetMap map tiles
+   #      addMarkers(lng=df_deaths_ad$lon, lat=df_deaths_ad$lat)
+   #                 
+   #  })
+    onclick("btn", output$element <- renderTable({info_nofound}))
+    onclick("btn2", output$element2 <- renderTable({info_found}))
+    
 }
 
 # Run the application 
