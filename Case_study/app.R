@@ -14,6 +14,9 @@ require(magrittr)
 require(lubridate)
 require(shinydashboard)
 require(plotly)
+require(tidyr)
+require(shinyjs)
+
 # Prepare data ------------------------------------------------------------
 # Geolocation of accidents ------------------------------------------------
 # Changes in dataset ------------------------------------------------------
@@ -76,6 +79,12 @@ data %<>% mutate_at(c("NEXPEDIENTE", "DISTRITO","TIPO.ACCIDENTE","ESTADO.METEREO
                       "LESIVIDAD","SEXO","RANGO.DE.EDAD","TIPO.PERSONA","TIPO.VEHICULO",
                       "INJURY"),
                     as.factor)
+levelfactor <- function(x){
+    if(is.factor(x)) return(fct_explicit_na(x, na_level = "(Missing)"))
+    return(x)
+}
+
+data <- as.data.frame(lapply(data, levelfactor))
 
 data_district = levels(data$DISTRITO) %>% str_sort()
 data_acc = levels(data$TIPO.ACCIDENTE) %>% str_sort()
@@ -175,33 +184,36 @@ df_date_historic <- rbind(df_dateh, df_date)
 tab1 <- tabItem(tabName = "tab1",
                 tags$head(tags$style(HTML(".small-box {height: 200px}"))),
                 fluidRow(
-                    valueBoxOutput("box1", width=15)
+                    valueBoxOutput("box1", width=15),
+                    valueBoxOutput("box2", width=15),
+                    valueBoxOutput("box3", width=15)
                     )
 )
 
 tab2 <- tabItem(tabName="tab2",
                 sidebarLayout(
                     sidebarPanel(
-                        selectInput(
+                        checkboxGroupInput(
                             inputId = "sel_type",
                             label = "Select type of accident",
                             choices = data_acc,
-                            multiple = TRUE,
-                            selected = c("Colisión múltiple")
-                        ),
-                        checkboxGroupInput(
-                            inputId = "sel_injury",
-                            label = "Select level of injury",
-                            choices = data_inj,
-                            selected = c("Mild")
+                            selected = data_acc
                         )
+                        #actionLink("selectall","Select All"),
+                        #actionButton('clickme',  'Click me')
+                        #,checkboxGroupInput(
+                        #    inputId = "sel_injury",
+                        #    label = "Select level of injury",
+                        #    choices = data_inj,
+                        #    selected = c("Mild")
+                        #)
                         
                     ),
                     mainPanel(
                             fluidRow(
                             tabBox(#tabPanel(title = "Historical accidents"),
-                                tabPanel(title = "Accidents per district"),
-                                tabPanel(title = "Victims"),
+                                tabPanel(title = "Total"),
+                                tabPanel(title = "Accidents per district",plotlyOutput("fig22")),
                                 tabPanel(title = "Weather", plotlyOutput("fig23"),plotlyOutput("fig24")),
                                 tabPanel(title = "Injury level"),
                                 width = 15
@@ -227,7 +239,8 @@ ui <- dashboardPage(
                                     menuItem("Location", tabName = "tab4", icon = icon("map-marked-alt"))
 )
 ),
-dashboardBody(tabItems(tab1,
+dashboardBody(
+              tabItems(tab1,
               tab2,
               tab3,
               tab4)
@@ -237,22 +250,40 @@ dashboardBody(tabItems(tab1,
 # Server ------------------------------------------------------------------
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 # Tab 1 -------------------------------------------------------------------
     
-    # Boxes 1 -----------------------------------------------------------------
+    # Box 1 -----------------------------------------------------------------
     output$box1 <- renderValueBox({
         valueBox(
-            value = as.numeric(nrow(data)),
+            value = as.numeric(sum(df_date$Accidents)),
             color = "blue",
             icon = icon("car-crash"),
             subtitle = "Total accidents"
             
         )}) 
+    # Box 2 -----------------------------------------------------------------
+    output$box2 <- renderValueBox({
+        valueBox(
+            value = as.numeric(sum(df_date$Victims)),
+            color = "olive",
+            icon = icon("users"),
+            subtitle = "Total victims"
+            
+        )}) 
+    # Box 3 -----------------------------------------------------------------
+    output$box3 <- renderValueBox({
+        valueBox(
+            value = as.numeric(sum(df_date$FVictims, na.rm=TRUE)),
+            color = "orange",
+            icon = icon("ambulance"),
+            subtitle = "Total fatal victims"
+            
+        )}) 
     
 # Tab 2 -------------------------------------------------------------------
-
-    data2 <- reactive({data %>% filter(TIPO.ACCIDENTE %in% input$sel_type, INJURY %in% input$sel_injury)})
+    data2 <- reactive({data %>% filter(TIPO.ACCIDENTE %in% unlist(input$sel_type))})
+   # data2 <- reactive({data %>% filter(TIPO.ACCIDENTE %in% input$sel_type, INJURY %in% input$sel_injury)})
     
 
     df_count2 <-reactive({data2%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())})
@@ -261,7 +292,36 @@ server <- function(input, output) {
 
     
 # Plots tab 2 -------------------------------------------------------------
+# District -----------------------------------------------------------------
+    output$fig221 <- renderPlotly({
+    df_district2 <-data%>% group_by(DISTRITO)%>%summarise(Victims=n(),
+                                                             Accidents = n_distinct(NEXPEDIENTE)
+    )
+    fig221 <- fig %>% 
+        plot_ly(data.frame(df_district2),
+                x = ~DISTRITO, 
+                y = ~Accidents,
+                type = 'bar')
+    
+    })
+    output$fig22 <- renderPlotly({
+    df_victim2 <-data2()%>% group_by(DISTRITO, TIPO.PERSONA)%>%summarise(Victims=n())
+    
+    
+    df_victim2$ids <- gsub('\\s+', '', df_victim2$DISTRITO)
+    df_victim2_wide <- spread(df_victim2, TIPO.PERSONA, Victims)
 
+    plot <- plot_ly(df_victim2,
+            x = ~DISTRITO, 
+            y = ~Victims, 
+            color= ~TIPO.PERSONA,
+            colors = 'Blues',
+            type = 'bar',
+            legendgroup = "A")  
+    
+        
+        subplot(plot, shareY = T) %>% layout(barmode = 'stack')
+    })
 # Weather -----------------------------------------------------------------
     output$fig23 <- renderPlotly({
         
