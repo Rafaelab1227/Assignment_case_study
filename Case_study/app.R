@@ -244,9 +244,19 @@ tab2 <- tabItem(tabName="tab2",
                                          )
                                          )
                                          ),
-                                tabPanel(title = "Accidents per district", plotlyOutput("fig221"),plotlyOutput("fig22")),
-                                tabPanel(title = "Weather", plotlyOutput("fig23"),plotlyOutput("fig24")),
-                                tabPanel(title = "Injury level",tableOutput("table3"),plotlyOutput("fig25")),
+                                tabPanel(title = "Accidents per district", 
+                                         fluidRow(infoBoxOutput("d1"), tags$style("#d1 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:910px;}")),
+                                         plotlyOutput("fig221"),
+                                         fluidRow(infoBoxOutput("d2"), tags$style("#d2 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:910px;}")),
+                                         plotlyOutput("fig22")),
+                                tabPanel(title = "Weather",
+                                         fluidRow(infoBoxOutput("w1"), tags$style("#w1 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:910px;}")),
+                                         plotlyOutput("fig23"),
+                                         fluidRow(infoBoxOutput("w2"), tags$style("#w2 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:910px;}")),
+                                         plotlyOutput("fig24")),
+                                tabPanel(title = "Injury level",
+                                         fluidRow(infoBoxOutput("i1"), tags$style("#i1 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:910px;}")),
+                                         tableOutput("table3"),plotlyOutput("fig25")),
                                 width = 15
                             )
                         )
@@ -260,12 +270,14 @@ tab3 <- tabItem(tabName = "tab3",
                 valueBoxOutput("box4", width=5),
                 valueBoxOutput("box5", width=5), 
                 ),
-                fluidRow(
-                plotlyOutput("fig3"),
-                plotlyOutput("fig31")
-                )
+                fluidRow(infoBoxOutput("da1"), tags$style("#da1 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:1120px;}")),
+                fluidRow(plotlyOutput("fig3")),
+                fluidRow(infoBoxOutput("da2"), tags$style("#da2 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:1120px;}")),
+                fluidRow(plotlyOutput("fig31"))
                )
-tab4 <- tabItem(tabName = "tab4",leafletOutput('map', width = '100%', height = '300px'),
+tab4 <- tabItem(tabName = "tab4",
+                fluidRow(infoBoxOutput("map1"), tags$style("#w1 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:1120px;}")),
+                leafletOutput('map', width = '100%', height = '300px'),
                 useShinyjs(),
                 actionButton("btn", "Info of victims geolocation not found"),
                 tableOutput("element"),
@@ -335,9 +347,8 @@ server <- function(input, output, session) {
     df_count2 <-reactive({data2%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA, SEXO, RANGO.DE.EDAD)%>%summarise(count=n())})
     df_exp <- reactive({unique(select(data2, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
                             ADDRESS, MONTH, DAY, TIME))})
-
-    
 # Plots tab 2 -------------------------------------------------------------
+   
     # Total -----------------------------------------------------------------
     output$fig21 <- renderPlot({
         df_total <-data2()%>% group_by(TIPO.ACCIDENTE)%>%summarise(Victims=n(),
@@ -348,8 +359,6 @@ server <- function(input, output, session) {
             coord_flip()+
             theme_classic()+
             labs(x = "Type accident selected", y = "Frequency") 
-        
-        
     })
 
 # Hover fig21 -------------------------------------------------------------
@@ -378,6 +387,17 @@ server <- function(input, output, session) {
     output$table1 <- renderTable(tabletotal())
     
     # District -----------------------------------------------------------------
+    output$d1 <- renderInfoBox({
+        infoBox(title = "Number of accidents per district",
+                fill = T, color = "purple")
+    })
+    output$d2 <- renderInfoBox({
+        infoBox(title = "Number of victims per district",
+                fill = T, color = "purple")
+    })
+    
+
+    # Plots -------------------------------------------------------------------
     output$fig221 <- renderPlotly({
     df_district2 <-data2()%>% group_by(DISTRITO)%>%summarise(Victims=n(),
                                                              Accidents = n_distinct(NEXPEDIENTE)
@@ -407,13 +427,25 @@ server <- function(input, output, session) {
         subplot(plot, shareY = T) %>% layout(barmode = 'stack')
     })
 # Weather -----------------------------------------------------------------
-    output$fig23 <- renderPlotly({
+    output$w1 <- renderInfoBox({
+        infoBox(title = "Number of accidents based based on the weather of the day",
+                fill = T, color = "purple")
+    })
+
+    output$w2 <- renderInfoBox({
+        infoBox(title = "Number of victims based on the based on the weather of the accident day",
+                fill = T, color = "purple")
+    })
+
+    # Plot --------------------------------------------------------------------
+
+        output$fig23 <- renderPlotly({
         
         df_weather2 <-data2()%>% group_by(ESTADO.METEREOLOGICO)%>%summarise(Victims=n(),
                                                                         Accidents = n_distinct(NEXPEDIENTE))
 
         fig23 <- plot_ly(df_weather2, labels = ~ESTADO.METEREOLOGICO, values = ~Accidents, type = 'pie')
-        fig23 <- fig23 %>% layout(title = 'Accidents depending on climate',
+        fig23 <- fig23 %>% layout(
                               xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
     
@@ -424,7 +456,7 @@ server <- function(input, output, session) {
         df_weather2 <-data2()%>% group_by(ESTADO.METEREOLOGICO)%>%summarise(Victims=n(),
                                                                             Accidents = n_distinct(NEXPEDIENTE))
         fig24 <- plot_ly(df_weather2, labels = ~ESTADO.METEREOLOGICO, values = ~Victims, type = 'pie')
-        fig24 <- fig24 %>% layout(title = 'Victims depending on climate',
+        fig24 <- fig24 %>% layout(
                                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
         
@@ -433,6 +465,13 @@ server <- function(input, output, session) {
     
 
 # Injury level ------------------------------------------------------------
+    output$i1 <- renderInfoBox({
+        infoBox(title = "Number of victims based on the level of injury register",
+                fill = T, color = "purple")
+    })
+
+
+    # Plots -------------------------------------------------------------------
     tabletotal3 <- reactive(data2()%>% group_by(INJURY)%>%summarise(Victims=n()))
     output$table3 <- renderTable(tabletotal3())
     
@@ -467,6 +506,16 @@ server <- function(input, output, session) {
             
         )}) 
 
+    output$da1 <- renderInfoBox({
+        infoBox(title = "Historical statistics since january 2019 until available information",
+                fill = T, color = "purple")
+    })
+    
+    output$da2 <- renderInfoBox({
+        infoBox(title = "Percentage of historical accidents based on the day that occured",
+                fill = T, color = "purple")
+    })
+    
     # Plots -------------------------------------------------------------------
 
     output$fig3 <- renderPlotly({
@@ -520,13 +569,19 @@ server <- function(input, output, session) {
     })
     
 # Tab 4 -------------------------------------------------------------------
-   # output$map <- renderLeaflet({
-   #  df_deaths_ad %>%
-   #  leaflet() %>%
-   #      addTiles() %>%  # Add default OpenStreetMap map tiles
-   #      addMarkers(lng=df_deaths_ad$lon, lat=df_deaths_ad$lat)
-   #                 
-   #  })
+    output$map1 <- renderInfoBox({
+        infoBox(title = "Location of accidents which involved fatal victims",
+                fill = T, color = "purple")
+    })
+
+
+ output$map <- renderLeaflet({
+  df_deaths_ad %>%
+  leaflet() %>%
+      addTiles() %>%  # Add default OpenStreetMap map tiles
+      addMarkers(lng=df_deaths_ad$lon, lat=df_deaths_ad$lat)
+
+  })
     onclick("btn", output$element <- renderTable({info_nofound}))
     onclick("btn2", output$element2 <- renderTable({info_found}))
     
