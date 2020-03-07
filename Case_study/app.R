@@ -246,7 +246,7 @@ tab2 <- tabItem(tabName="tab2",
                                          ),
                                 tabPanel(title = "Accidents per district", plotlyOutput("fig221"),plotlyOutput("fig22")),
                                 tabPanel(title = "Weather", plotlyOutput("fig23"),plotlyOutput("fig24")),
-                                tabPanel(title = "Injury level"),
+                                tabPanel(title = "Injury level",tableOutput("table3"),plotlyOutput("fig25")),
                                 width = 15
                             )
                         )
@@ -379,7 +379,7 @@ server <- function(input, output, session) {
     
     # District -----------------------------------------------------------------
     output$fig221 <- renderPlotly({
-    df_district2 <-data%>% group_by(DISTRITO)%>%summarise(Victims=n(),
+    df_district2 <-data2()%>% group_by(DISTRITO)%>%summarise(Victims=n(),
                                                              Accidents = n_distinct(NEXPEDIENTE)
     )
     plot_ly(data.frame(df_district2),
@@ -430,6 +430,23 @@ server <- function(input, output, session) {
         
         fig24
     })
+    
+
+# Injury level ------------------------------------------------------------
+    tabletotal3 <- reactive(data2()%>% group_by(INJURY)%>%summarise(Victims=n()))
+    output$table3 <- renderTable(tabletotal3())
+    
+    output$fig25 <- renderPlotly({
+        df_district2 <-data2()%>% group_by(INJURY)%>%summarise(Victims=n(),
+                                                                 Accidents = n_distinct(NEXPEDIENTE)
+        )
+       p <- plot_ly(data.frame(df_district2),
+                x = ~INJURY)%>%
+                add_bars(y = ~Victims, color = rainbow(nrow(df_district2)))
+       hide_legend(p)
+    })
+    
+    
 # Tab 3 -------------------------------------------------------------------
     # Box 4 -------------------------------------------------------------------
     output$box4 <- renderValueBox({
