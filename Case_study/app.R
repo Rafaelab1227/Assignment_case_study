@@ -276,7 +276,7 @@ tab3 <- tabItem(tabName = "tab3",
                 fluidRow(plotlyOutput("fig31"))
                )
 tab4 <- tabItem(tabName = "tab4",
-                fluidRow(infoBoxOutput("map1"), tags$style("#w1 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:1120px;}")),
+                fluidRow(infoBoxOutput("map1"), tags$style("#map1 {height:75px; line-height:75px; padding-top:0px; padding-bottom:100px; width:1120px;}")),
                 leafletOutput('map', width = '100%', height = '300px'),
                 useShinyjs(),
                 actionButton("btn", "Info of victims geolocation not found"),
