@@ -212,8 +212,20 @@ tab2 <- tabItem(tabName="tab2",
                     mainPanel(
                             fluidRow(
                             tabBox(#tabPanel(title = "Historical accidents"),
-                                tabPanel(title = "Total"),
-                                tabPanel(title = "Accidents per district",plotlyOutput("fig22")),
+                                tabPanel(title = "Total",
+                                         fluidRow(
+                                         column(width = 7,
+                                         plotOutput("fig21", hover = hoverOpts(id = "fig21hover", delayType = "throttle")),
+                                         ),
+                                         column(width = 5,
+                                         h2("Information about type of accident"),
+                                         h3(textOutput("hovertype", container = span)),
+                                         tableOutput("table1"),
+                                         tableOutput("table2")
+                                         )
+                                         )
+                                         ),
+                                tabPanel(title = "Accidents per district", plotlyOutput("fig221"),plotlyOutput("fig22")),
                                 tabPanel(title = "Weather", plotlyOutput("fig23"),plotlyOutput("fig24")),
                                 tabPanel(title = "Injury level"),
                                 width = 15
@@ -292,13 +304,51 @@ server <- function(input, output, session) {
 
     
 # Plots tab 2 -------------------------------------------------------------
-# District -----------------------------------------------------------------
+    # Total -----------------------------------------------------------------
+    output$fig21 <- renderPlot({
+        df_total <-data2()%>% group_by(TIPO.ACCIDENTE)%>%summarise(Victims=n(),
+                                                                Accidents = n_distinct(NEXPEDIENTE))
+        df_total_long <-gather(df_total, var, value, Victims:Accidents)
+        
+        ggplot(df_total_long, aes(x=TIPO.ACCIDENTE, y=value, fill=var))+ geom_bar(stat='identity', position=position_dodge())+
+            coord_flip()+
+            theme_classic()+
+            labs(x = "Type accident selected", y = "Frequency") 
+        
+        
+    })
+
+# Hover fig21 -------------------------------------------------------------
+    hoverfig21 <- reactive({
+        req(input$fig21hover$y)
+        round(input$fig21hover$y)
+    })
+    
+    hovertype <- reactive({
+        req(hoverfig21() > 0 & hoverfig21() <= length(input$sel_type))
+        input$sel_type[hoverfig21()]
+    })
+    
+    output$hovertype <- renderText(hovertype())
+    
+    df_tipo_victims <- data%>% group_by(TIPO.ACCIDENTE, TIPO.PERSONA)%>%summarise(Victims=n())
+    names(df_tipo_victims)[2] <- "Type of victim"
+    df_total_v <-data%>% group_by(TIPO.ACCIDENTE)%>%summarise(Victims=n(),
+                                                               Accidents = n_distinct(NEXPEDIENTE))
+    
+    
+    tabletipo <- reactive(df_tipo_victims %>% filter( TIPO.ACCIDENTE == hovertype()) %>% ungroup()%>% select(-TIPO.ACCIDENTE))
+    output$table2 <- renderTable(tabletipo())
+    
+    tabletotal <- reactive(df_total_v %>% filter( TIPO.ACCIDENTE == hovertype())%>% ungroup()%>% select(-TIPO.ACCIDENTE)) 
+    output$table1 <- renderTable(tabletotal())
+    
+    # District -----------------------------------------------------------------
     output$fig221 <- renderPlotly({
     df_district2 <-data%>% group_by(DISTRITO)%>%summarise(Victims=n(),
                                                              Accidents = n_distinct(NEXPEDIENTE)
     )
-    fig221 <- fig %>% 
-        plot_ly(data.frame(df_district2),
+    plot_ly(data.frame(df_district2),
                 x = ~DISTRITO, 
                 y = ~Accidents,
                 type = 'bar')
