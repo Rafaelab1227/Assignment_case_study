@@ -18,6 +18,10 @@ require(tidyr)
 require(shinyjs)
 require(leaflet)
 
+
+list.of.packages <- c("leaflet", "shinyjs","tidyr","plotly","shinydashboard","lubridate","magrittr","tidyverse","shiny","jsonlite","rmarkdown")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
 # Prepare data ------------------------------------------------------------
 # Geolocation of accidents ------------------------------------------------
 # Changes in dataset ------------------------------------------------------
