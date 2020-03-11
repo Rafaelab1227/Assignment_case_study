@@ -75,7 +75,7 @@ knitr::opts_chunk$set(echo = FALSE)
 </div>
 
 <div id="left">
-<p> In the type tab you can select the type/types of accidents for which you want to review the information about. You will found that the information display of all the subtabs will change with your selection. The first one will present the total number of victims and accidents for each type selected and if you pass the cursor over the graph a table with the counts and type of victims will appear to the right</p>
+<p> In the type tab you can select the type/types of accidents for which you want to review the information about. Moreover, you can download a pdf report with some information about it. You will also find that the information display of all the subtabs will change with your selection. The first one will present the total number of victims and accidents for each type selected and if you pass the cursor over the graph a table with the counts and type of victims will appear to the right</p>
 </div>
 
 ## {}
