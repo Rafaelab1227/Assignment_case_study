@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r include=FALSE}
+library(tidyverse)
+require(magrittr)
 download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
 data1 <- read.csv("accidentsmadrid.csv", sep=";",fileEncoding = "latin1")
 
