@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 require(tidyverse)
 require(magrittr)
 require(ggplot2)
-require(kableExtra)
 
 #Download data
 download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
@@ -86,11 +85,6 @@ params$sel_type
 ```
 
 # Total number of accidents and victims per type 
-```{r echo=FALSE}
-df_table %>%
-  kable() %>%
-  kable_styling()
-```
 
 ```{r echo=FALSE}
           ggplot(df_total_long, aes(x=TIPO.ACCIDENTE, y=value, fill=var))+     geom_bar(stat='identity', position=position_dodge())+
