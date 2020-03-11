@@ -1,5 +1,5 @@
 ---
-title: "About_app"
+title: "About Madrid traffic accidents app"
 author: "Rafaela Becerra"
 date: "March 2020"
 output:
@@ -12,3 +12,69 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+```{css}
+#left {
+	margin: 15px 0 20px 20px;
+	text-align: left;
+	float: left;
+	z-index:-10;
+	width:48%;
+	font-size: 0.85em;
+	line-height: 1.5; 
+}
+
+#right {
+	margin: 15px 0 20px 0;
+	float: right;
+	text-align: left;
+	z-index:-10;
+	width:48%;
+	font-size: 0.85em;
+	line-height: 1.5; 
+}
+```
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">About</h1>
+<section>
+<p class="fragment fade-in-then-semi-out"">The present document has all the information with respect the app created to analize the data of traffic accidents in Madrid</p> 
+<p class="fragment fade-in-then-semi-out">The dataset use is part of the open data from Madrid and contains information about the accidents that happend in each year, updating the cases monthly</p>
+</section>
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">Dataset</h1>
+<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="1"> The dataset contains registers of people impicated in traffic accidents as the observations, the information given is: </span>
+</br>
+<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="2">Number of expedient which is a id of the accident, </span>
+<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="3">Timing variables: Date, weather and hour of the accident </span>
+<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="4">Location variables: street, number and district where it happend </span>
+<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="5">About the accident: type of vehicle and type of accident</span>
+<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="6">About the victims: type of victim, age range, sex and injury level</span>
+<p class="fragment roll-in">For more information about the dataset and other datasets go to: < [Madrid Open Data](https://datos.madrid.es/)></p>
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">Preprocess</h1>
+<p class="fragment fade-in-then-semi-out""> The labels used in the dataset are records in Spanish, since they could change in time they have been trated in its original idiom.</p>
+<p class="fragment fade-in-then-semi-out""> Additionally, there are some control preprocess done in order to keep the update function of the app, like identifing from the dataset obtained from the web all the categories and variables and create new categories for treating the data and make the calculations.</p>
+ 
+## {}
+<h1 style="border:2px solid DodgerBlue;">Description</h1>
+<img src="image1.png"  height="400" width="600">
+<p> In the first tab you can found some breve description about the app, the date of the last record found on the Website and the count of accidents, victims and fatal victims until that day.</p>
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">Type</h1>
+
+<div id="right">
+<img src="image2.png"  height="300" width="600">
+</div>
+
+<div id="left">
+<p> In the tab you can select the type/types of accidents for which you want to review the information about. You will found that the information display of all the subtabs will change. The first one will present the total number of victims and accidents for each type selected and if you pass the cursor over the graph a table with the counts will appear to the right</p>
+</div>
+## {}
+<h1 style="border:2px solid DodgerBlue;">Type</h1>
+<p>Additionally, you have infomation about the </p>
+<div id="left">
+
