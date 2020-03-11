@@ -129,7 +129,7 @@ The first graph allows to see the series interactively by month, the last 6 mont
 - shinyjs (action buttons)
 - leaflet (map display)
 - jsonlite (for geolocalization function)
-- kableExtra (render tables to html)
+
 
 ## {}
 <h1 style="border:2px solid DodgerBlue;">References</h1>
