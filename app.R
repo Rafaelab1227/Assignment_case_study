@@ -510,12 +510,12 @@ server <- function(input, output, session) {
     output$table3 <- renderTable(tabletotal3())
     
     output$fig25 <- renderPlotly({
-        df_district2 <-data2()%>% group_by(INJURY)%>%summarise(Victims=n(),
+        df_injure2 <-data2()%>% group_by(INJURY)%>%summarise(Victims=n(),
                                                                  Accidents = n_distinct(NEXPEDIENTE)
         )
-       p <- plot_ly(data.frame(df_district2),
+       p <- plot_ly(data.frame(df_injure2),
                 x = ~INJURY)%>%
-                add_bars(y = ~Victims, color = rainbow(nrow(df_district2)))
+                add_bars(y = ~Victims, color = rainbow(nrow(df_injure2)))
        hide_legend(p)
     })
     
