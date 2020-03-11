@@ -11,3 +11,7 @@ This app contains fourth tab which are:
 - Location: plots a map on the location of fatal victims and information about them.
 
 [A short documentation that explains its functionalities and the data contained.](https://rafaelab1227.github.io/Assignment_case_study/About_app.html)
+
+[The app command to run it is display here](https://rafaelab1227.github.io/Assignment_case_study/Run_app.R)
+
+[The app code can be download here](https://rafaelab1227.github.io/Assignment_case_study/app.R)
