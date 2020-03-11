@@ -119,12 +119,30 @@ The first graph allows to see the series interactively by month, the last 6 mont
 
 <p>  The packages use are the following: <p>
 
--shiny
--tidyverse
--shinydashboard (instead of shinythemes for making a better looking design structure)
--magrittr (improves readability)
--lubridate (for handling dates and hours)
--plotly (interactive plots)
--tidyr (manipulation of data frames)
--shinyjs (action buttons)
--leaflet (map display)
+- shiny
+- tidyverse
+- shinydashboard (instead of shinythemes for making a better looking design structure)
+- magrittr (improves readability)
+- lubridate (for handling dates and hours)
+- plotly (interactive plots)
+- tidyr (manipulation of data frames)
+- shinyjs (action buttons)
+- leaflet (map display)
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">References</h1>
+
+<p>  References checked in order to create the app: <p>
+
+- [Shiny HTML Tags Glossary](https://shiny.rstudio.com/articles/tag-glossary.html)
+
+- [Shiny Tutorial](https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
+
+- [Shiny Articles](https://shiny.rstudio.com/articles/)
+
+- [Plotly community](https://community.plot.ly/)
+
+- [Shiny Dashboard](https://rstudio.github.io/shinydashboard/)
+
+- [Shiny references](https://shiny.rstudio.com/reference/shiny/)
+
