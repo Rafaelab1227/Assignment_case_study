@@ -235,7 +235,8 @@ tab2 <- tabItem(tabName="tab2",
                             label = "Select type of accident",
                             choices = data_acc,
                             selected = data_acc
-                        )
+                        ),
+                        downloadButton("report", "Generate report")
                         #actionLink("selectall","Select All"),
                         #actionButton('clickme',  'Click me')
                         #,checkboxGroupInput(
@@ -518,7 +519,25 @@ server <- function(input, output, session) {
        hide_legend(p)
     })
     
-    
+
+# Generate report ---------------------------------------------------------
+    output$report <- downloadHandler(
+      filename = "Report2020.pdf",
+      content = function(file) {
+        tempReport <- file.path(tempdir(), "Report2020.Rmd")
+        file.copy("Report2020.Rmd", tempReport, overwrite = TRUE)
+        
+        # Set up parameters to pass to Rmd document
+        params <- list(
+          sel_type = isolate(input$sel_type)
+        )
+        
+        rmarkdown::render(tempReport, output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+    )
 # Tab 3 -------------------------------------------------------------------
     # Box 4 -------------------------------------------------------------------
     output$box4 <- renderValueBox({
