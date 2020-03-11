@@ -1,9 +1,9 @@
 
 # Data loading ------------------------------------------------------------
-download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
+#download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
 data1 <- read.csv("accidentsmadrid.csv", sep=";",fileEncoding = "latin1")
 
-download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid1.csv")
+#download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid1.csv")
 data2 <- read.csv("accidentsmadrid1.csv", sep=";",fileEncoding = "latin1")
 
 
@@ -90,7 +90,7 @@ data_day = levels(data$DAY)
 data_day = levels(ordered(data$DAY, levels=days))
 data_month = levels(data$MONTH)
 
-
+data_date_max = max(data$FECHA)
 # Data subset expediente --------------------------------------------------
 df_exp <- unique(select(data, NEXPEDIENTE, FECHA, DISTRITO, TIPO.ACCIDENTE, ESTADO.METEREOLOGICO,
                    ADDRESS, MONTH, DAY, TIME))
@@ -164,25 +164,25 @@ df_date_historic <- rbind(df_dateh, df_date)
 #Geolocation for fatal victims -------------------------------------------
 data_deaths_ad <- ungroup(data[data$INJURY=="Fatal",])
 data_address <- unique(as.character(data_deaths_ad$ADDRESS))
-
-geo <- function(location){
-   d <- jsonlite::fromJSON(
-       gsub('\\@addr\\@', gsub('\\s+', '\\%20', location),
-            'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
-
-       if(length(d) == 0){
-           return(data.frame(lon = NA,
-                              lat = NA))
-            } else {
-            return(data.frame(lon = as.numeric(d$lon),
-                                lat = as.numeric(d$lat)))
-        }
-}
-
-locations <- suppressWarnings(lapply(data_address, function(lol) {
-    result = geo(as.character(lol))
-    return(result)
-    }) %>%bind_rows() %>% data.frame())
+# 
+# geo <- function(location){
+#    d <- jsonlite::fromJSON(
+#        gsub('\\@addr\\@', gsub('\\s+', '\\%20', location),
+#             'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
+# 
+#        if(length(d) == 0){
+#            return(data.frame(lon = NA,
+#                               lat = NA))
+#             } else {
+#             return(data.frame(lon = as.numeric(d$lon),
+#                                 lat = as.numeric(d$lat)))
+#         }
+# }
+# 
+# locations <- suppressWarnings(lapply(data_address, function(lol) {
+#     result = geo(as.character(lol))
+#     return(result)
+#     }) %>%bind_rows() %>% data.frame())
 
 locations <-cbind(locations,data_address)
 names(locations)[3] <- "ADDRESS"
@@ -203,11 +203,23 @@ df_deaths_ad <- data_deaths_ad[!is.na(data_deaths_ad$lon),]
 tab1 <- tabItem(tabName = "tab1",
                 tags$head(tags$style(HTML(".small-box {height: 200px}"))),
                 fluidRow(
+                  column(6,
+                         h1("Traffic Accidents in Madrid 2020"),
+                         h4("This is a reporting tool which aims to present some relevant information about traffic accidents in Madrid. The dataset use is part of the open data offer from the City town hall. The format in which the datasets are presented is a compilation of the anual cases, updated every month. This app has been made to present the data from 2020 in a direct and updated way colleting the data from the website. Addiionally, some information is presented as a historical look using the unified data available from january 2019."),
+                         h4("The variables of the dataset are:"),
+                         uiOutput("myList"),
+                         uiOutput("tab")),
+                  column(3,
+                         img(class="img-polaroid",
+                             src="https://www.stepsrelocation.com/wp-content/uploads/2019/03/madrid-central-1.jpg", height="200%", width="200%"))
+                  ),
+                fluidRow(
                     valueBoxOutput("box1", width=15),
                     valueBoxOutput("box2", width=15),
                     valueBoxOutput("box3", width=15)
                     )
 )
+
 
 tab2 <- tabItem(tabName="tab2",
                 sidebarLayout(
@@ -310,7 +322,16 @@ dashboardBody(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 # Tab 1 -------------------------------------------------------------------
-    
+  url <- a("Open Data Madrid", href="https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=7c2843010d9c3610VgnVCM2000001f4a900aRCRD&vgnextchannel=374512b9ace9f310VgnVCM100000171f5a0aRCRD&vgnextfmt=default")
+  output$tab <- renderUI({
+    tagList("For more information about this dataset and more data about Madrid go to:", url)
+  })
+  
+  output$myList <- renderUI(HTML("<ul><li>CarType: model</li>
+                                   <li>Age: years passed since production</li>
+                                   <li>Price: price ask by the owners, expressed in $1,000</li>
+                                   <li>Mileage: mileage in 1000</li>
+                                   </ul>"))
     # Box 1 -----------------------------------------------------------------
     output$box1 <- renderValueBox({
         valueBox(
