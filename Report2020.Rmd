@@ -1,0 +1,53 @@
+---
+title: "Report type of accidents"
+output: pdf_document
+params:
+  sel_type: ["Alcance", "Atropello a persona"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
+data1 <- read.csv("accidentsmadrid.csv", sep=";",fileEncoding = "latin1")
+
+data <- data1 %>% 
+    rename(
+        NUMERO =NÚMERO,
+        ESTADO.METEREOLOGICO = ESTADO.METEREOLÓGICO,
+        TIPO.VEHICULO = TIPO.VEHÍCULO,
+        LESIVIDAD = LESIVIDAD.,
+        NEXPEDIENTE = Nº..EXPEDIENTE
+    )
+
+data$INJURY <- "Mild"
+data[is.na(data$LESIVIDAD),match("LESIVIDAD",names(data))]<- "Unknown"
+data[is.na(data$LESIVIDAD), match("INJURY",names(data))] <- "Unknown"
+data[data$LESIVIDAD=="3", match("INJURY",names(data))] <- "Fatal"
+data[data$LESIVIDAD=="14"|data$LESIVIDAD=="", match("INJURY",names(data))] <- "Without assistance"
+data[data$LESIVIDAD=="77", match("INJURY",names(data))] <- "Unknown"
+
+#Changes to NA
+data <- data %>% mutate_all(na_if,"")
+
+
+data %<>% mutate_at(c("NEXPEDIENTE", "DISTRITO","TIPO.ACCIDENTE","ESTADO.METEREOLOGICO",
+                      "LESIVIDAD","SEXO","RANGO.DE.EDAD","TIPO.PERSONA","TIPO.VEHICULO",
+                      "INJURY"),
+                    as.factor)
+levelfactor <- function(x){
+    if(is.factor(x)) return(fct_explicit_na(x, na_level = "(Missing)"))
+    return(x)
+}
+
+data <- as.data.frame(lapply(data, levelfactor))
+
+data2 <- data %>% filter(TIPO.ACCIDENTE %in% unlist(params$sel_type))
+```
+
+# Type of accidents selected
+```{r}
+params$sel_type
+```
