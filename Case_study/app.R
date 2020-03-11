@@ -314,7 +314,7 @@ server <- function(input, output, session) {
     # Box 1 -----------------------------------------------------------------
     output$box1 <- renderValueBox({
         valueBox(
-            value = as.numeric(sum(df_date$Accidents)),
+            value = as.numeric(sum(df_date$Accidents, na.rm=TRUE)),
             color = "blue",
             icon = icon("car-crash"),
             subtitle = "Total accidents"
@@ -323,7 +323,7 @@ server <- function(input, output, session) {
     # Box 2 -----------------------------------------------------------------
     output$box2 <- renderValueBox({
         valueBox(
-            value = as.numeric(sum(df_date$Victims)),
+            value = as.numeric(sum(df_date$Victims, na.rm=TRUE)),
             color = "olive",
             icon = icon("users"),
             subtitle = "Total victims"
@@ -490,7 +490,7 @@ server <- function(input, output, session) {
     # Box 4 -------------------------------------------------------------------
     output$box4 <- renderValueBox({
         valueBox(
-            value = as.numeric(sum(df_date_historic$Accidents)),
+            value = as.numeric(sum(df_date_historic$Accidents, na.rm=TRUE)),
             color = "purple",
             icon = icon("car-crash"),
             subtitle = "Total accidents"
@@ -499,7 +499,7 @@ server <- function(input, output, session) {
     
     output$box5 <- renderValueBox({
         valueBox(
-            value = as.numeric(sum(df_date_historic$Victims)),
+            value = as.numeric(sum(df_date_historic$Victims, na.rm=TRUE)),
             color = "purple",
             icon = icon("ambulance"),
             subtitle = "Total Victims"
