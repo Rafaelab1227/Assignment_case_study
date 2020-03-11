@@ -1,0 +1,14 @@
+---
+title: "About_app"
+author: "Rafaela Becerra"
+date: "March 2020"
+output:
+  revealjs::revealjs_presentation:
+    theme: solarized
+    highlight: pygments
+    center: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
