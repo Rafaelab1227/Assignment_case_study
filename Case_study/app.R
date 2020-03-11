@@ -161,7 +161,7 @@ df_date_historic <- rbind(df_dateh, df_date)
 
 
 
-Geolocation for fatal victims -------------------------------------------
+#Geolocation for fatal victims -------------------------------------------
 data_deaths_ad <- ungroup(data[data$INJURY=="Fatal",])
 data_address <- unique(as.character(data_deaths_ad$ADDRESS))
 
@@ -428,12 +428,12 @@ server <- function(input, output, session) {
     })
 # Weather -----------------------------------------------------------------
     output$w1 <- renderInfoBox({
-        infoBox(title = "Number of accidents based based on the weather of the day",
+        infoBox(title = "Number of accidents based on the weather of the day",
                 fill = T, color = "purple")
     })
 
     output$w2 <- renderInfoBox({
-        infoBox(title = "Number of victims based on the based on the weather of the accident day",
+        infoBox(title = "Number of victims based on the weather of the accident day",
                 fill = T, color = "purple")
     })
 
