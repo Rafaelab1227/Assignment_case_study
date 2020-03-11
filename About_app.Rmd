@@ -64,14 +64,14 @@ knitr::opts_chunk$set(echo = FALSE)
  
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Description</h1>
-<img src="image1.png"  height="400" width="600">
+<img src="image1.PNG"  height="400" width="600">
 <p> In the first tab you can find some breve description about the app, the date of the last record found on the Website and the count of accidents, victims and fatal victims until that day.</p>
 
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Type</h1>
 
 <div id="right">
-<img src="image2.png"  height="300" width="600">
+<img src="image2.PNG"  height="300" width="600">
 </div>
 
 <div id="left">
@@ -89,7 +89,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Date</h1>
 <div id="right">
-<img src="image3.png"  height="300" width="600">
+<img src="image3.PNG"  height="300" width="600">
 </div>
 
 <div id="left">
@@ -104,7 +104,7 @@ The first graph allows to see the series interactively by month, the last 6 mont
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Location</h1>
 <div id="right">
-<img src="image4.png"  height="300" width="600">
+<img src="image4.PNG"  height="300" width="600">
 </div>
 
 <div id="left">
@@ -129,6 +129,7 @@ The first graph allows to see the series interactively by month, the last 6 mont
 - shinyjs (action buttons)
 - leaflet (map display)
 - jsonlite (for geolocalization function)
+- kableExtra (render tables to html)
 
 ## {}
 <h1 style="border:2px solid DodgerBlue;">References</h1>
