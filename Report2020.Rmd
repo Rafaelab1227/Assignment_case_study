@@ -10,11 +10,16 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r include=FALSE}
-library(tidyverse)
+require(tidyverse)
 require(magrittr)
+require(ggplot2)
+require(kableExtra)
+
+#Download data
 download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
 data1 <- read.csv("accidentsmadrid.csv", sep=";",fileEncoding = "latin1")
 
+#Changes in dataset
 data <- data1 %>% 
     rename(
         NUMERO =NÚMERO,
@@ -34,11 +39,15 @@ data[data$LESIVIDAD=="77", match("INJURY",names(data))] <- "Unknown"
 #Changes to NA
 data <- data %>% mutate_all(na_if,"")
 
+data <- data.frame(lapply(data, as.character), stringsAsFactors=FALSE)
+data[is.na(data)] <- "Unknown"
+data[data=="Se desconoce"]<-"Unknown"
 
 data %<>% mutate_at(c("NEXPEDIENTE", "DISTRITO","TIPO.ACCIDENTE","ESTADO.METEREOLOGICO",
                       "LESIVIDAD","SEXO","RANGO.DE.EDAD","TIPO.PERSONA","TIPO.VEHICULO",
                       "INJURY"),
                     as.factor)
+
 levelfactor <- function(x){
     if(is.factor(x)) return(fct_explicit_na(x, na_level = "(Missing)"))
     return(x)
@@ -46,10 +55,80 @@ levelfactor <- function(x){
 
 data <- as.data.frame(lapply(data, levelfactor))
 
+#Filter by input
 data2 <- data %>% filter(TIPO.ACCIDENTE %in% unlist(params$sel_type))
+
+#Data frames for plots
+df_total <-data2%>% group_by(TIPO.ACCIDENTE)%>%summarise(Victims=n(),
+                                                                Accidents = n_distinct(NEXPEDIENTE))
+
+df_table<-df_total
+
+names(df_table)[1] = "Type of accident"
+
+df_total_long <-gather(df_total, var, value, Victims:Accidents)
+
+df_district2 <-data2%>% group_by(DISTRITO)%>%summarise(Victims=n(),
+                                                             Accidents =n_distinct(NEXPEDIENTE))
+
+df_weather2 <-data2%>% group_by(ESTADO.METEREOLOGICO)%>%summarise(Victims=n(),
+                                                                        Accidents = n_distinct(NEXPEDIENTE))
+
+df_injure2 <-data2%>% group_by(INJURY)%>%summarise(Victims=n(),
+                                                                 Accidents = n_distinct(NEXPEDIENTE))
+
+
 ```
 
 # Type of accidents selected
 ```{r}
 params$sel_type
+```
+
+# Total number of accidents and victims per type 
+```{r echo=FALSE}
+df_table %>%
+  kable() %>%
+  kable_styling()
+```
+
+```{r echo=FALSE}
+          ggplot(df_total_long, aes(x=TIPO.ACCIDENTE, y=value, fill=var))+     geom_bar(stat='identity', position=position_dodge())+
+              coord_flip()+
+              theme_classic()+
+              labs(x = "Type accident selected", y = "Frequency") 
+```
+
+# Total victims per district
+
+```{r echo=FALSE}
+        ggplot(df_district2, aes(x=DISTRITO, y=Victims))+
+                geom_bar(stat='identity', position=position_dodge())+
+                theme_classic()+
+                labs(x = "District", y = "Victims") +
+                theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+# Number of accidents per district
+
+```{r echo=FALSE}
+        ggplot(df_district2, aes(x=DISTRITO, y=Accidents))+
+                geom_bar(stat='identity', position=position_dodge())+
+                theme_classic()+
+                labs(x = "District", y = "Accidents") +
+                theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+# Percentage of accidents per weather of the day
+
+```{r echo=FALSE}
+        ggplot(df_weather2,aes(x="", y=Accidents, fill=ESTADO.METEREOLOGICO))+
+        geom_bar(width = 1, stat = "identity")+ coord_polar("y", start=0)
+```
+
+# Percentage of accidents per injury level
+
+```{r echo=FALSE}
+        ggplot(df_injure2,aes(x="", y=Accidents, fill=INJURY))+
+        geom_bar(width = 1, stat = "identity")
 ```
