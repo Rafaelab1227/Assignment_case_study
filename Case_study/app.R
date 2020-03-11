@@ -205,10 +205,15 @@ tab1 <- tabItem(tabName = "tab1",
                 fluidRow(
                   column(6,
                          h1("Traffic Accidents in Madrid 2020"),
-                         h4("This is a reporting tool which aims to present some relevant information about traffic accidents in Madrid. The dataset use is part of the open data offer from the City town hall. The format in which the datasets are presented is a compilation of the anual cases, updated every month. This app has been made to present the data from 2020 in a direct and updated way colleting the data from the website. Addiionally, some information is presented as a historical look using the unified data available from january 2019."),
-                         h4("The variables of the dataset are:"),
-                         uiOutput("myList"),
-                         uiOutput("tab")),
+                         h1("About"),
+                         h4(tags$blockquote("This is a reporting tool which aims to present some relevant information about traffic accidents in Madrid. The dataset use is part of the open data offer from the City town hall. The format in which the datasets are presented is a compilation of the anual cases, updated every month. This app has been made to present the data from 2020 in a direct and updated way colleting the data from the website. Additionally, some information is presented as a historical look using the unified data available from january 2019."),align = "justify"),
+                         h4("The contents of the tabs are:"),
+                         h4(uiOutput("tabsex")),
+                         h4(uiOutput("about")),
+                        h1("Data"),
+                        h4("The data presented for 2020 is available until:", tags$b(textOutput("maxdate"))),
+                        h3("Statistics" )),
+                  
                   column(3,
                          img(class="img-polaroid",
                              src="https://www.stepsrelocation.com/wp-content/uploads/2019/03/madrid-central-1.jpg", height="200%", width="200%"))
@@ -216,7 +221,8 @@ tab1 <- tabItem(tabName = "tab1",
                 fluidRow(
                     valueBoxOutput("box1", width=15),
                     valueBoxOutput("box2", width=15),
-                    valueBoxOutput("box3", width=15)
+                    valueBoxOutput("box3", width=15),
+                  uiOutput("tab")
                     )
 )
 
@@ -322,16 +328,22 @@ dashboardBody(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 # Tab 1 -------------------------------------------------------------------
-  url <- a("Open Data Madrid", href="https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=7c2843010d9c3610VgnVCM2000001f4a900aRCRD&vgnextchannel=374512b9ace9f310VgnVCM100000171f5a0aRCRD&vgnextfmt=default")
+    urlapp <- a("Presentation about app", href="https://rafaelab1227.github.io/Assignment_case_study/About_app.html#/")
+  output$about <- renderUI({
+      tagList("For more information about this app you can check:", urlapp)
+    })
+    
+    url <- a("Open Data Madrid", href="https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=7c2843010d9c3610VgnVCM2000001f4a900aRCRD&vgnextchannel=374512b9ace9f310VgnVCM100000171f5a0aRCRD&vgnextfmt=default")
   output$tab <- renderUI({
     tagList("For more information about this dataset and more data about Madrid go to:", url)
   })
   
-  output$myList <- renderUI(HTML("<ul><li>CarType: model</li>
-                                   <li>Age: years passed since production</li>
-                                   <li>Price: price ask by the owners, expressed in $1,000</li>
-                                   <li>Mileage: mileage in 1000</li>
+  output$tabsex <- renderUI(HTML("<ul><li>Type: information about the total number of accidents per type, number of accidents per district, type of weather and injury level</li>
+                                   <li>Date: historical information about the number of victims, accidents and fatal victims since january
+                                   2019 and the classification per day of occurance</li>
+                                   <li> Location: location of the occurance of accidents that involve fatal victims in 2020</li>
                                    </ul>"))
+  output$maxdate <- renderText(as.character(data_date_max))
     # Box 1 -----------------------------------------------------------------
     output$box1 <- renderValueBox({
         valueBox(
