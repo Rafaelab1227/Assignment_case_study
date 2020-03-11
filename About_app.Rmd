@@ -128,6 +128,7 @@ The first graph allows to see the series interactively by month, the last 6 mont
 - tidyr (manipulation of data frames)
 - shinyjs (action buttons)
 - leaflet (map display)
+- jsonlite (for geolocalization function)
 
 ## {}
 <h1 style="border:2px solid DodgerBlue;">References</h1>
