@@ -1,5 +1,5 @@
 ---
-title: "About Madrid traffic accidents app"
+title: "Madrid traffic accidents app"
 author: "Rafaela Becerra"
 date: "March 2020"
 output:
@@ -38,7 +38,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ## {}
 <h1 style="border:2px solid DodgerBlue;">About</h1>
 <section>
-<p class="fragment fade-in-then-semi-out"">The present document has all the information with respect the app created to analize the data of traffic accidents in Madrid</p> 
+<p class="fragment fade-in-then-semi-out"">The present document has all the information with respect to the app created to analize the data of traffic accidents in Madrid</p> 
 <p class="fragment fade-in-then-semi-out">The dataset use is part of the open data from Madrid and contains information about the accidents that happend in each year, updating the cases monthly</p>
 </section>
 
@@ -46,7 +46,7 @@ knitr::opts_chunk$set(echo = FALSE)
 <h1 style="border:2px solid DodgerBlue;">Dataset</h1>
 <span style="display: inline-block;" class="fragment fade-left" data-fragment-index="1"> The dataset contains registers of people impicated in traffic accidents as the observations, the information given is: </span>
 </br>
-<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="2">Number of expedient which is a id of the accident, </span>
+<span style="display: inline-block;" class="fragment fade-left" data-fragment-index="2">Number of expedient which is an id of the accident, </span>
 <span style="display: inline-block;" class="fragment fade-left" data-fragment-index="3">Timing variables: Date, weather and hour of the accident </span>
 <span style="display: inline-block;" class="fragment fade-left" data-fragment-index="4">Location variables: street, number and district where it happend </span>
 <span style="display: inline-block;" class="fragment fade-left" data-fragment-index="5">About the accident: type of vehicle and type of accident</span>
@@ -56,12 +56,16 @@ knitr::opts_chunk$set(echo = FALSE)
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Preprocess</h1>
 <p class="fragment fade-in-then-semi-out""> The labels used in the dataset are records in Spanish, since they could change in time they have been trated in its original idiom.</p>
-<p class="fragment fade-in-then-semi-out""> Additionally, there are some control preprocess done in order to keep the update function of the app, like identifing from the dataset obtained from the web all the categories and variables and create new categories for treating the data and make the calculations.</p>
+<p class="fragment fade-in-then-semi-out""> Additionally, there are some control preprocess done in order to keep the update function of the app, like identifying from the dataset obtained from the web all the categories and variables, and create new categories for treating the data and make the calculations.</p>
+
+
+## {data-background=#000000}
+<h1 style="border:2px solid DodgerBlue;">Tabs</h1>
  
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Description</h1>
 <img src="image1.png"  height="400" width="600">
-<p> In the first tab you can found some breve description about the app, the date of the last record found on the Website and the count of accidents, victims and fatal victims until that day.</p>
+<p> In the first tab you can find some breve description about the app, the date of the last record found on the Website and the count of accidents, victims and fatal victims until that day.</p>
 
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Type</h1>
@@ -71,10 +75,56 @@ knitr::opts_chunk$set(echo = FALSE)
 </div>
 
 <div id="left">
-<p> In the tab you can select the type/types of accidents for which you want to review the information about. You will found that the information display of all the subtabs will change. The first one will present the total number of victims and accidents for each type selected and if you pass the cursor over the graph a table with the counts will appear to the right</p>
+<p> In the type tab you can select the type/types of accidents for which you want to review the information about. You will found that the information display of all the subtabs will change with your selection. The first one will present the total number of victims and accidents for each type selected and if you pass the cursor over the graph a table with the counts and type of victims will appear to the right</p>
 </div>
+
 ## {}
 <h1 style="border:2px solid DodgerBlue;">Type</h1>
-<p>Additionally, you have infomation about the </p>
-<div id="left">
+<p>Additionally, you have infomation about: </p>
+- Number of accidents per district
+- Number of victims classified by district
+- The percentage of accidents and victims based on the weather of the day.
+- The number of victims depending of their injury level, these categories have been developed in based on [this information](https://datos.madrid.es/FWProjects/egob/Catalogo/Seguridad/Ficheros/Estructura_DS_Accidentes_trafico_desde_2019.pdf) 
 
+## {}
+<h1 style="border:2px solid DodgerBlue;">Date</h1>
+<div id="right">
+<img src="image3.png"  height="300" width="600">
+</div>
+
+<div id="left">
+<p> This tab contains historical infomation about  registers since january 2019, the app will return automatically the hole dataset for 2019 and 2020 which is expected to be update by the website every month. </p>
+</div>
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">Date</h1>
+<p>
+The first graph allows to see the series interactively by month, the last 6 months, 1 year from the last date, one year calendar, and all the records by selecting the buttons above it. You can also check the total number of accidents, victims and percentage of accidents based on the day on the week that they occured. </p>
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">Location</h1>
+<div id="right">
+<img src="image4.png"  height="300" width="600">
+</div>
+
+<div id="left">
+<p>This tab displays a map that has been built by performing a geolocation function to get the location of the accidents that involved fatal victims. The points display correspond to the records of the victims that were succesfully located. You can display more information about those and the ones that could not be identified by the direcction given in the dataset. 
+
+## {data-background=#000000}
+<h1 style="border:2px solid DodgerBlue;">Packages used and references</h1>
+<div id="right">
+
+## {}
+<h1 style="border:2px solid DodgerBlue;">Packages</h1>
+
+<p>  The packages use are the following: <p>
+
+-shiny
+-tidyverse
+-shinydashboard (instead of shinythemes for making a better looking design structure)
+-magrittr (improves readability)
+-lubridate (for handling dates and hours)
+-plotly (interactive plots)
+-tidyr (manipulation of data frames)
+-shinyjs (action buttons)
+-leaflet (map display)
