@@ -1,10 +1,10 @@
 
 # Data loading ------------------------------------------------------------
-#download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
-data1 <- read.csv("accidentsmadrid.csv", sep=";")
+download.file("https://datos.madrid.es/egob/catalogo/300228-21-accidentes-trafico-detalle.csv",destfile="accidentsmadrid.csv")
+data1 <- read.csv("accidentsmadrid.csv", sep=";",fileEncoding = "latin1")
 
-#download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid1.csv")
-data2 <- read.csv("accidentsmadrid1.csv", sep=";")
+download.file("https://datos.madrid.es/egob/catalogo/300228-19-accidentes-trafico-detalle.csv",destfile="accidentsmadrid1.csv")
+data2 <- read.csv("accidentsmadrid1.csv", sep=";",fileEncoding = "latin1")
 
 
 # Packages requiere -------------------------------------------------------
@@ -161,38 +161,38 @@ df_date_historic <- rbind(df_dateh, df_date)
 
 
 
-# Geolocation for fatal victims -------------------------------------------
-# data_deaths_ad <- ungroup(data[data$INJURY=="Fatal",]) 
-# data_address <- unique(as.character(data_deaths_ad$ADDRESS))
-# 
-# geo <- function(location){
-#    d <- jsonlite::fromJSON(
-#        gsub('\\@addr\\@', gsub('\\s+', '\\%20', location),
-#             'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
-# 
-#        if(length(d) == 0){
-#            return(data.frame(lon = NA,
-#                               lat = NA))
-#             } else {
-#             return(data.frame(lon = as.numeric(d$lon),
-#                                 lat = as.numeric(d$lat)))
-#         }
-# }
-# 
-# locations <- suppressWarnings(lapply(data_address, function(lol) {
-#     result = geo(as.character(lol))
-#     return(result)
-#     }) %>%bind_rows() %>% data.frame())
-# 
-# locations <-cbind(locations,data_address)
-# names(locations)[3] <- "ADDRESS"
-# data_deaths_ad <- left_join(data_deaths_ad, locations)
-# 
-# nofound <- nrow(data_deaths_ad[is.na(data_deaths_ad$lon),])
-# info_nofound <- data_deaths_ad[is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
-# names(info_nofound) <- c("Street", "Number", "District", "Age", "Type of accident")
-# 
-# df_deaths_ad <- data_deaths_ad[!is.na(data_deaths_ad$lon),]
+Geolocation for fatal victims -------------------------------------------
+data_deaths_ad <- ungroup(data[data$INJURY=="Fatal",])
+data_address <- unique(as.character(data_deaths_ad$ADDRESS))
+
+geo <- function(location){
+   d <- jsonlite::fromJSON(
+       gsub('\\@addr\\@', gsub('\\s+', '\\%20', location),
+            'http://nominatim.openstreetmap.org/search/@addr@?format=json&addressdetails=0&limit=1'))
+
+       if(length(d) == 0){
+           return(data.frame(lon = NA,
+                              lat = NA))
+            } else {
+            return(data.frame(lon = as.numeric(d$lon),
+                                lat = as.numeric(d$lat)))
+        }
+}
+
+locations <- suppressWarnings(lapply(data_address, function(lol) {
+    result = geo(as.character(lol))
+    return(result)
+    }) %>%bind_rows() %>% data.frame())
+
+locations <-cbind(locations,data_address)
+names(locations)[3] <- "ADDRESS"
+data_deaths_ad <- left_join(data_deaths_ad, locations)
+
+nofound <- nrow(data_deaths_ad[is.na(data_deaths_ad$lon),])
+info_nofound <- data_deaths_ad[is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
+names(info_nofound) <- c("Street", "Number", "District", "Age", "Type of accident")
+
+df_deaths_ad <- data_deaths_ad[!is.na(data_deaths_ad$lon),]
 
  info_found <- data_deaths_ad[!is.na(data_deaths_ad$lon),] %>% select(CALLE, NUMERO, DISTRITO, RANGO.DE.EDAD, TIPO.ACCIDENTE)
  names(info_found) <- c("Street", "Number", "District", "Age", "Type of accident")
